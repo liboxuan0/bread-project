@@ -1,8 +1,43 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { supabase, Reservation } from "@/lib/supabase";
+import { createClient } from "@supabase/supabase-js";
 
 export async function POST(request: NextRequest) {
   try {
+    // 从请求头获取 Authorization token
+    const authHeader = request.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json(
+        { error: "请先登录" },
+        { status: 401 }
+      );
+    }
+
+    const token = authHeader.split(" ")[1];
+
+    // 使用 token 创建认证客户端
+    const supabaseAuth = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        global: {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      }
+    );
+
+    // 获取当前用户
+    const { data: { user }, error: userError } = await supabaseAuth.auth.getUser();
+
+    if (userError || !user) {
+      return NextResponse.json(
+        { error: "请先登录" },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const { share_id, quantity, customer_name, contact, remark } = body;
 
@@ -32,38 +67,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 2. 查询面包分享
-    const { data: bread, error: breadError } = await supabase
-      .from("bread_shares")
-      .select("*")
-      .eq("id", share_id)
-      .single();
-
-    // 3. 面包不存在
-    if (breadError || !bread) {
-      return NextResponse.json(
-        { error: "面包不存在" },
-        { status: 404 }
-      );
-    }
-
-    // 4. 状态不是 published
-    if (bread.status !== "published") {
-      return NextResponse.json(
-        { error: "该面包暂不可预约" },
-        { status: 400 }
-      );
-    }
-
-    // 5. 超过预约截止时间
-    if (new Date() > new Date(bread.booking_deadline)) {
-      return NextResponse.json(
-        { error: "该面包已截止预约" },
-        { status: 400 }
-      );
-    }
-
-    // 6. 预约份数不正确
+    // 2. 预约份数不正确
     if (quantity <= 0) {
       return NextResponse.json(
         { error: "预约份数不正确" },
@@ -71,60 +75,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 7. 超过每人最多可预约份数
-    if (quantity > bread.limit_per_person) {
-      return NextResponse.json(
-        { error: "超过每人最多可预约份数" },
-        { status: 400 }
-      );
-    }
-
-    // 8. 剩余名额不足
-    if (bread.remaining_quantity < quantity) {
-      return NextResponse.json(
-        { error: "剩余名额不足" },
-        { status: 400 }
-      );
-    }
-
-    // 9. 检查是否已预约过（同一联系方式 + 同一分享，排除已取消的预约）
-    const { data: existing } = await supabase
-      .from("reservations")
-      .select("id")
-      .eq("share_id", share_id)
-      .eq("contact", contact.trim())
-      .neq("status", "cancelled")
-      .maybeSingle();
-
-    if (existing) {
-      return NextResponse.json(
-        { error: "你已预约过该面包" },
-        { status: 400 }
-      );
-    }
-
-    // 10. 创建预约记录
-    const { data: reservation, error: insertError } = await supabase
-      .from("reservations")
-      .insert({
-        share_id,
-        bread_name: bread.name,
-        quantity,
-        customer_name: customer_name.trim(),
-        contact: contact.trim(),
-        remark: remark?.trim() || null,
-        status: "pending",
+    // 3. 在数据库事务内创建预约并扣减库存，避免创建失败但库存已扣
+    const { data: reservation, error: reservationError } = await supabase
+      .rpc("create_reservation_with_inventory", {
+        p_share_id: share_id,
+        p_user_id: user.id,
+        p_quantity: quantity,
+        p_customer_name: customer_name.trim(),
+        p_contact: contact.trim(),
+        p_remark: remark?.trim() || null,
       })
-      .select()
       .single();
 
-    if (insertError) {
-      console.error("Insert error:", insertError);
-      if (insertError.code === "23505") {
-        return NextResponse.json(
-          { error: "你已预约过该面包" },
-          { status: 400 }
-        );
+    if (reservationError) {
+      console.error("Create reservation error:", reservationError);
+      const message = reservationError.message || "";
+      const errorMap: Array<[string, string, number]> = [
+        ["bread not found", "面包不存在", 404],
+        ["bread not bookable", "该面包暂不可预约", 400],
+        ["booking closed", "该面包已截止预约", 400],
+        ["invalid quantity", "预约份数不正确", 400],
+        ["over limit per person", "超过每人最多可预约份数", 400],
+        ["insufficient quantity", "剩余名额不足", 400],
+        ["reservation exists", "你已预约过该面包", 400],
+        ["duplicate key", "你已预约过该面包", 400],
+      ];
+      const mapped = errorMap.find(([key]) => message.includes(key));
+      if (mapped) {
+        return NextResponse.json({ error: mapped[1] }, { status: mapped[2] });
       }
       return NextResponse.json(
         { error: "预约失败，请稍后重试" },
@@ -132,27 +110,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 11. 扣减剩余数量
-    const { error: updateError } = await supabase
-      .from("bread_shares")
-      .update({ remaining_quantity: bread.remaining_quantity - quantity })
-      .eq("id", share_id);
-
-    if (updateError) {
-      console.error("Update remaining_quantity error:", updateError);
-    }
-
-    // 12. 返回预约成功信息
+    // 4. 返回预约成功信息
     return NextResponse.json({
       success: true,
       message: "预约成功",
       data: {
-        id: reservation.id,
-        bread_name: reservation.bread_name,
-        quantity: reservation.quantity,
-        customer_name: reservation.customer_name,
-        status: reservation.status,
-        created_at: reservation.created_at,
+        id: (reservation as Reservation).id,
+        bread_name: (reservation as Reservation).bread_name,
+        quantity: (reservation as Reservation).quantity,
+        customer_name: (reservation as Reservation).customer_name,
+        status: (reservation as Reservation).status,
+        created_at: (reservation as Reservation).created_at,
       },
     });
   } catch (error) {

@@ -1,5 +1,6 @@
 import { supabase, BreadShare } from "@/lib/supabase";
 import BreadCard from "@/components/BreadCard";
+import Header from "@/components/Header";
 
 // 禁用缓存，每次请求都获取最新数据
 export const dynamic = "force-dynamic";
@@ -24,6 +25,7 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-50">
+      <Header />
       {/* 顶部装饰 */}
       <div className="bg-amber-100/50 border-b border-amber-200">
         <div className="container mx-auto px-4 py-12 text-center">

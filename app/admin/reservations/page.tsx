@@ -9,7 +9,7 @@ const statusLabels: Record<string, { text: string; className: string }> = {
   confirmed: { text: "已确认", className: "bg-blue-100 text-blue-700" },
   picked_up: { text: "已领取", className: "bg-green-100 text-green-700" },
   cancelled: { text: "已取消", className: "bg-gray-100 text-gray-500" },
-  no_show: { text: "未到场", className: "bg-red-100 text-red-600" },
+  no_show: { text: "未领取", className: "bg-red-100 text-red-700" },
 };
 
 const statusOptions = [
@@ -18,7 +18,7 @@ const statusOptions = [
   { value: "confirmed", label: "已确认" },
   { value: "picked_up", label: "已领取" },
   { value: "cancelled", label: "已取消" },
-  { value: "no_show", label: "未到场" },
+  { value: "no_show", label: "未领取" },
 ];
 
 function formatDateTime(dateString: string): string {
@@ -45,19 +45,29 @@ export default function ReservationsPage() {
     fetchReservations();
   }, [statusFilter]);
 
+  const getAccessToken = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    return session?.access_token || null;
+  };
+
   const fetchReservations = async () => {
     setLoading(true);
-    let query = supabase
-      .from("reservations")
-      .select("*")
-      .order("created_at", { ascending: false });
+    const token = await getAccessToken();
 
-    if (statusFilter) {
-      query = query.eq("status", statusFilter);
+    if (!token) {
+      setReservations([]);
+      setLoading(false);
+      return;
     }
 
-    const { data } = await query;
-    setReservations(data || []);
+    const params = new URLSearchParams();
+    if (statusFilter) params.set("status", statusFilter);
+
+    const res = await fetch(`/api/admin/reservations?${params.toString()}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
+    setReservations(res.ok ? data.data || [] : []);
     setLoading(false);
   };
 
@@ -74,15 +84,26 @@ export default function ReservationsPage() {
       return;
     }
 
-    const updateData: Record<string, unknown> = { status: newStatus };
-    if (newStatus === "picked_up") {
-      updateData.picked_up_at = new Date().toISOString();
+    const token = await getAccessToken();
+    if (!token) {
+      alert("登录已失效，请重新登录");
+      return;
     }
 
-    await supabase
-      .from("reservations")
-      .update(updateData)
-      .eq("id", reservation.id);
+    const res = await fetch(`/api/admin/reservations/${reservation.id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ status: newStatus }),
+    });
+
+    if (!res.ok) {
+      const data = await res.json();
+      alert(data.error || "修改失败");
+      return;
+    }
 
     fetchReservations();
   };
@@ -92,27 +113,28 @@ export default function ReservationsPage() {
 
     setProcessing(true);
     const { reservation, returnQuota } = cancelModal;
+    const token = await getAccessToken();
 
-    await supabase
-      .from("reservations")
-      .update({ status: "cancelled" })
-      .eq("id", reservation.id);
+    if (!token) {
+      alert("登录已失效，请重新登录");
+      setProcessing(false);
+      return;
+    }
 
-    if (returnQuota) {
-      const { data: bread } = await supabase
-        .from("bread_shares")
-        .select("remaining_quantity")
-        .eq("id", reservation.share_id)
-        .single();
+    const res = await fetch(`/api/admin/reservations/${reservation.id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ status: "cancelled", returnQuota }),
+    });
 
-      if (bread) {
-        await supabase
-          .from("bread_shares")
-          .update({
-            remaining_quantity: bread.remaining_quantity + reservation.quantity,
-          })
-          .eq("id", reservation.share_id);
-      }
+    if (!res.ok) {
+      const data = await res.json();
+      alert(data.error || "取消失败");
+      setProcessing(false);
+      return;
     }
 
     setProcessing(false);
@@ -121,7 +143,24 @@ export default function ReservationsPage() {
   };
 
   const canChangeStatus = (status: string) => {
-    return status !== "cancelled" && status !== "picked_up";
+    return ["pending", "confirmed"].includes(status);
+  };
+
+  const getStatusOptions = (status: string) => {
+    if (status === "pending") {
+      return [
+        { value: "confirmed", label: "确认预约" },
+        { value: "cancelled", label: "取消预约" },
+      ];
+    }
+    if (status === "confirmed") {
+      return [
+        { value: "picked_up", label: "标记已领取" },
+        { value: "no_show", label: "标记未领取" },
+        { value: "cancelled", label: "取消预约" },
+      ];
+    }
+    return [];
   };
 
   return (
@@ -233,12 +272,11 @@ export default function ReservationsPage() {
                           className="text-sm border border-gray-200 rounded px-2 py-1 bg-white"
                         >
                           <option value="">修改状态</option>
-                          {r.status !== "confirmed" && (
-                            <option value="confirmed">确认预约</option>
-                          )}
-                          <option value="picked_up">标记已领取</option>
-                          <option value="cancelled">取消预约</option>
-                          <option value="no_show">标记未到场</option>
+                          {getStatusOptions(r.status).map((opt) => (
+                            <option key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </option>
+                          ))}
                         </select>
                       ) : (
                         <span className="text-gray-400 text-sm">-</span>

@@ -2,6 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { supabase, BreadShare } from "@/lib/supabase";
 import ReservationForm from "@/components/ReservationForm";
+import Header from "@/components/Header";
+
+// 禁用缓存，每次请求都获取最新数据
+export const dynamic = "force-dynamic";
 
 interface BreadDetailPageProps {
   params: {
@@ -43,22 +47,24 @@ export default async function BreadDetailPage({ params }: BreadDetailPageProps) 
     notFound();
   }
 
+  // 额外检查：即使通过旧链接访问，已下架的也不可预约
+  if (bread.status !== "published") {
+    notFound();
+  }
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-50">
-      {/* 顶部导航 */}
-      <div className="bg-white/80 backdrop-blur-sm border-b border-amber-100 sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <Link
-            href="/"
-            className="inline-flex items-center text-amber-700 hover:text-amber-800 transition-colors"
-          >
-            <span className="mr-2">←</span>
-            <span>返回首页</span>
-          </Link>
-        </div>
-      </div>
+      <Header />
 
       <div className="container mx-auto px-4 py-6 max-w-2xl">
+        {/* 返回链接 */}
+        <Link
+          href="/"
+          className="inline-flex items-center text-amber-700 hover:text-amber-800 transition-colors mb-4"
+        >
+          <span className="mr-2">←</span>
+          <span>返回首页</span>
+        </Link>
         {/* 面包图片 */}
         <div className="bg-white rounded-2xl shadow-sm border border-amber-100 overflow-hidden mb-6">
           <div className="aspect-[16/9] bg-amber-50 relative">

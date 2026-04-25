@@ -14,12 +14,12 @@ type FormData = {
   description: string;
   image_url: string;
   total_quantity: number;
+  remaining_quantity: number;
   limit_per_person: number;
   pickup_time: string;
   pickup_address: string;
   booking_deadline: string;
   notice: string;
-  status: "draft" | "published" | "closed";
 };
 
 const defaultForm: FormData = {
@@ -27,12 +27,12 @@ const defaultForm: FormData = {
   description: "",
   image_url: "",
   total_quantity: 10,
+  remaining_quantity: 10,
   limit_per_person: 1,
   pickup_time: "",
   pickup_address: "",
   booking_deadline: "",
   notice: "",
-  status: "draft",
 };
 
 function toLocalDateTimeValue(dateString: string): string {
@@ -52,11 +52,24 @@ export default function BreadShareForm({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [warning, setWarning] = useState("");
+  const [bookedQuantity, setBookedQuantity] = useState(0);
+  const [uploading, setUploading] = useState(false);
 
-  // 已预约数量 = 总份数 - 剩余份数
-  const bookedQuantity = bread
-    ? bread.total_quantity - bread.remaining_quantity
-    : 0;
+  const calculateBookedQuantity = async (shareId: string): Promise<number> => {
+    const { data, error } = await supabase
+      .from("reservations")
+      .select("quantity")
+      .eq("share_id", shareId)
+      .neq("status", "cancelled");
+
+    if (error) {
+      throw error;
+    }
+
+    return (data || []).reduce((total, reservation) => {
+      return total + (reservation.quantity || 0);
+    }, 0);
+  };
 
   useEffect(() => {
     if (bread) {
@@ -65,15 +78,21 @@ export default function BreadShareForm({
         description: bread.description || "",
         image_url: bread.image_url || "",
         total_quantity: bread.total_quantity,
+        remaining_quantity: bread.remaining_quantity,
         limit_per_person: bread.limit_per_person,
         pickup_time: toLocalDateTimeValue(bread.pickup_time),
         pickup_address: bread.pickup_address,
         booking_deadline: toLocalDateTimeValue(bread.booking_deadline),
         notice: bread.notice || "",
-        status: bread.status,
       });
+      calculateBookedQuantity(bread.id)
+        .then(setBookedQuantity)
+        .catch(() => {
+          setBookedQuantity(Math.max(0, bread.total_quantity - bread.remaining_quantity));
+        });
     } else {
       setForm(defaultForm);
+      setBookedQuantity(0);
     }
   }, [bread]);
 
@@ -114,6 +133,11 @@ export default function BreadShareForm({
     return null;
   };
 
+  const getAccessToken = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    return session?.access_token || null;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -137,43 +161,52 @@ export default function BreadShareForm({
         description: form.description.trim() || null,
         image_url: form.image_url.trim() || null,
         total_quantity: form.total_quantity,
+        remaining_quantity: form.remaining_quantity,
         limit_per_person: form.limit_per_person,
         pickup_time: new Date(form.pickup_time).toISOString(),
         pickup_address: form.pickup_address.trim(),
         booking_deadline: new Date(form.booking_deadline).toISOString(),
         notice: form.notice.trim() || null,
-        status: form.status,
       };
+      const token = await getAccessToken();
+
+      if (!token) {
+        setError("登录已失效，请重新登录");
+        setSubmitting(false);
+        return;
+      }
 
       if (isEditing && bread) {
-        // 编辑模式：计算新的剩余份数
-        const quantityDiff = form.total_quantity - bread.total_quantity;
-        const newRemaining = Math.max(0, bread.remaining_quantity + quantityDiff);
+        const res = await fetch(`/api/admin/bread-shares/${bread.id}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        });
 
-        const { error: updateError } = await supabase
-          .from("bread_shares")
-          .update({
-            ...payload,
-            remaining_quantity: newRemaining,
-          })
-          .eq("id", bread.id);
-
-        if (updateError) {
-          setError("更新失败：" + updateError.message);
+        if (!res.ok) {
+          const data = await res.json();
+          setError(data.error || "更新失败");
           setSubmitting(false);
           return;
         }
-      } else {
-        // 新增模式：remaining_quantity 等于 total_quantity
-        const { error: insertError } = await supabase
-          .from("bread_shares")
-          .insert({
-            ...payload,
-            remaining_quantity: form.total_quantity,
-          });
 
-        if (insertError) {
-          setError("创建失败：" + insertError.message);
+        setBookedQuantity(await calculateBookedQuantity(bread.id));
+      } else {
+        const res = await fetch("/api/admin/bread-shares", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        });
+
+        if (!res.ok) {
+          const data = await res.json();
+          setError(data.error || "创建失败");
           setSubmitting(false);
           return;
         }
@@ -191,6 +224,54 @@ export default function BreadShareForm({
     value: string | number
   ) => {
     setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    if (!allowedTypes.includes(file.type)) {
+      setError("仅支持 JPG/PNG/WebP/GIF 格式");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setError("文件大小不能超过 5MB");
+      return;
+    }
+
+    setUploading(true);
+    setError("");
+    try {
+      const token = await getAccessToken();
+      if (!token) {
+        setError("登录已失效，请重新登录");
+        setUploading(false);
+        return;
+      }
+
+      const uploadForm = new FormData();
+      uploadForm.append("file", file);
+
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: uploadForm,
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "上传失败");
+        setUploading(false);
+        return;
+      }
+
+      handleChange("image_url", data.url);
+    } catch {
+      setError("上传失败，请重试");
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
@@ -239,30 +320,52 @@ export default function BreadShareForm({
             />
           </div>
 
-          {/* 图片地址 */}
+          {/* 图片上传 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              图片地址
+              面包图片
             </label>
-            <input
-              type="url"
-              value={form.image_url}
-              onChange={(e) => handleChange("image_url", e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
-              placeholder="https://..."
-            />
-            {form.image_url && (
-              <div className="mt-2 w-20 h-20 bg-gray-100 rounded-lg overflow-hidden">
+            {form.image_url ? (
+              <div className="relative group w-24 h-24 rounded-lg overflow-hidden border border-gray-200">
                 <img
                   src={form.image_url}
                   alt="预览"
                   className="w-full h-full object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = "none";
-                  }}
                 />
+                <button
+                  type="button"
+                  onClick={() => handleChange("image_url", "")}
+                  className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-sm"
+                >
+                  移除
+                </button>
               </div>
+            ) : (
+              <label className={`flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-amber-400 hover:bg-amber-50/50 transition-colors ${uploading ? "pointer-events-none opacity-50" : ""}`}>
+                <span className="text-2xl mb-1">{uploading ? "⏳" : "📷"}</span>
+                <span className="text-sm text-gray-500">
+                  {uploading ? "上传中..." : "点击上传图片"}
+                </span>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+              </label>
             )}
+            <div className="mt-2">
+              <details className="text-xs text-gray-400">
+                <summary className="cursor-pointer hover:text-gray-500">或输入图片链接</summary>
+                <input
+                  type="url"
+                  value={form.image_url}
+                  onChange={(e) => handleChange("image_url", e.target.value)}
+                  className="w-full mt-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                  placeholder="https://..."
+                />
+              </details>
+            </div>
           </div>
 
           {/* 面包介绍 */}
@@ -280,7 +383,7 @@ export default function BreadShareForm({
           </div>
 
           {/* 份数设置 */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 总份数 <span className="text-red-500">*</span>
@@ -296,9 +399,23 @@ export default function BreadShareForm({
               />
               {isEditing && (
                 <p className="text-xs text-gray-500 mt-1">
-                  已预约 {bookedQuantity} 份，剩余 {bread?.remaining_quantity} 份
+                  已预约 {bookedQuantity} 份
                 </p>
               )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                剩余份数 <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                min={0}
+                value={form.remaining_quantity}
+                onChange={(e) =>
+                  handleChange("remaining_quantity", parseInt(e.target.value) || 0)
+                }
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+              />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -369,26 +486,6 @@ export default function BreadShareForm({
               placeholder="如：请准时领取，过时不候"
             />
           </div>
-
-          {/* 状态（仅编辑时显示） */}
-          {isEditing && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                状态
-              </label>
-              <select
-                value={form.status}
-                onChange={(e) =>
-                  handleChange("status", e.target.value as FormData["status"])
-                }
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent bg-white"
-              >
-                <option value="draft">草稿</option>
-                <option value="published">已发布</option>
-                <option value="closed">已关闭</option>
-              </select>
-            </div>
-          )}
 
           {/* 按钮 */}
           <div className="flex gap-3 pt-2">

@@ -37,13 +37,30 @@ export type BreadShare = {
 export type Reservation = {
   id: string;
   share_id: string;
+  user_id: string;
   bread_name: string;
   quantity: number;
   customer_name: string;
   contact: string;
   remark: string | null;
   status: "pending" | "confirmed" | "picked_up" | "cancelled" | "no_show";
+  confirmed_at: string | null;
   picked_up_at: string | null;
+  cancelled_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type UserProfile = {
+  id: string;
+  user_id: string;
+  email: string;
+  nickname: string;
+  avatar_url: string | null;
+  pickup_name: string | null;
+  phone: string | null;
+  wechat_id: string | null;
+  preference_note: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -79,34 +96,11 @@ export async function getBreadShareById(id: string) {
 }
 
 /**
- * 提交预约
- */
-export async function createReservation(reservation: {
-  share_id: string;
-  bread_name: string;
-  quantity: number;
-  customer_name: string;
-  contact: string;
-  remark?: string | null;
-}) {
-  const { data, error } = await supabase
-    .from("reservations")
-    .insert({
-      ...reservation,
-      status: "pending",
-    })
-    .select()
-    .single();
-
-  return { data: data as Reservation | null, error };
-}
-
-/**
  * 测试 Supabase 连接
  */
 export async function testConnection() {
   try {
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("bread_shares")
       .select("count")
       .limit(1);

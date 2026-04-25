@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { BreadShare } from "@/lib/supabase";
+import { usePathname } from "next/navigation";
+import { supabase, BreadShare } from "@/lib/supabase";
 
 interface ReservationFormProps {
   bread: BreadShare;
@@ -20,6 +21,7 @@ function formatDateTime(dateString: string): string {
 }
 
 export default function ReservationForm({ bread }: ReservationFormProps) {
+  const pathname = usePathname();
   const [quantity, setQuantity] = useState(1);
   const [customerName, setCustomerName] = useState("");
   const [contact, setContact] = useState("");
@@ -28,10 +30,56 @@ export default function ReservationForm({ bread }: ReservationFormProps) {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [bookedQuantity, setBookedQuantity] = useState(0);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+  const [remainingQuantity, setRemainingQuantity] = useState(bread.remaining_quantity);
+
+  useEffect(() => {
+    loadUserProfile();
+    fetchRemainingQuantity();
+  }, []);
+
+  const fetchRemainingQuantity = async () => {
+    const { data } = await supabase
+      .from("bread_shares")
+      .select("remaining_quantity")
+      .eq("id", bread.id)
+      .single();
+
+    if (data) {
+      setRemainingQuantity(data.remaining_quantity);
+    }
+  };
+
+  const loadUserProfile = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    setIsLoggedIn(!!user);
+
+    if (user) {
+      // 获取用户资料，填充默认值
+      const { data: profile } = await supabase
+        .from("user_profiles")
+        .select("pickup_name, phone, wechat_id")
+        .eq("user_id", user.id)
+        .single();
+
+      if (profile) {
+        if (profile.pickup_name) {
+          setCustomerName(profile.pickup_name);
+        }
+        // 联系方式优先使用 phone，其次 wechat_id
+        if (profile.phone) {
+          setContact(profile.phone);
+        } else if (profile.wechat_id) {
+          setContact(profile.wechat_id);
+        }
+      }
+    }
+  };
 
   const isExpired = new Date() > new Date(bread.booking_deadline);
-  const isSoldOut = bread.remaining_quantity <= 0;
+  const isSoldOut = remainingQuantity <= 0;
   const canBook = !isExpired && !isSoldOut;
+  const maxQuantity = Math.min(bread.limit_per_person, remainingQuantity);
 
   const validate = (): string | null => {
     if (!customerName.trim()) {
@@ -46,8 +94,8 @@ export default function ReservationForm({ bread }: ReservationFormProps) {
     if (quantity > bread.limit_per_person) {
       return `每人限约 ${bread.limit_per_person} 份`;
     }
-    if (quantity > bread.remaining_quantity) {
-      return `剩余份数不足，当前仅剩 ${bread.remaining_quantity} 份`;
+    if (quantity > remainingQuantity) {
+      return `剩余份数不足，当前仅剩 ${remainingQuantity} 份`;
     }
     return null;
   };
@@ -55,6 +103,13 @@ export default function ReservationForm({ bread }: ReservationFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    // 检查登录状态
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      setError("请先登录后再预约");
+      return;
+    }
 
     const validationError = validate();
     if (validationError) {
@@ -67,10 +122,12 @@ export default function ReservationForm({ bread }: ReservationFormProps) {
     try {
       const res = await fetch("/api/reservations", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.access_token}`,
+        },
         body: JSON.stringify({
           share_id: bread.id,
-          bread_name: bread.name,
           quantity,
           customer_name: customerName.trim(),
           contact: contact.trim(),
@@ -81,7 +138,11 @@ export default function ReservationForm({ bread }: ReservationFormProps) {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "预约失败，请稍后重试");
+        if (res.status === 401) {
+          setError("请先登录后再预约");
+        } else {
+          setError(data.error || "预约失败，请稍后重试");
+        }
         return;
       }
 
@@ -160,10 +221,16 @@ export default function ReservationForm({ bread }: ReservationFormProps) {
         </div>
 
         {/* 返回首页按钮 */}
-        <div className="px-6 pb-6">
+        <div className="px-6 pb-6 space-y-3">
+          <Link
+            href="/me/reservations"
+            className="block w-full text-center py-3 bg-green-500 text-white font-bold rounded-xl hover:bg-green-600 transition-colors"
+          >
+            查看我的预约
+          </Link>
           <Link
             href="/"
-            className="block w-full text-center py-3 bg-green-500 text-white font-bold rounded-xl hover:bg-green-600 transition-colors"
+            className="block w-full text-center py-3 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 transition-colors"
           >
             返回首页
           </Link>
@@ -194,6 +261,21 @@ export default function ReservationForm({ bread }: ReservationFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
+    
+
+      {/* 未登录提示 */}
+      {isLoggedIn === false && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+          <p className="text-amber-800 text-sm mb-3">请先登录后再预约</p>
+          <Link
+            href={`/login?redirect=${encodeURIComponent(pathname)}`}
+            className="inline-block px-4 py-2 bg-amber-500 text-white text-sm font-medium rounded-lg hover:bg-amber-600 transition-colors"
+          >
+            立即登录
+          </Link>
+        </div>
+      )}
+
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
           {error}
@@ -219,7 +301,7 @@ export default function ReservationForm({ bread }: ReservationFormProps) {
           <button
             type="button"
             onClick={() =>
-              setQuantity(Math.min(bread.limit_per_person, quantity + 1))
+              setQuantity(Math.min(maxQuantity, quantity + 1))
             }
             className="w-10 h-10 rounded-full bg-amber-100 text-amber-700 font-bold hover:bg-amber-200 transition-colors"
           >
