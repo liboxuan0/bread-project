@@ -317,7 +317,7 @@ export default function BreadSharesPage() {
                           </button>
                           <button
                             onClick={() => {
-                              if (confirm("确认删除该面包？\n删除后，该面包数据将无法恢复。")) {
+                              if (confirm("确认删除该面包？\n删除后将不再展示，已有预约记录仍会保留。")) {
                                 handleDeleteBreadShare(bread);
                               }
                             }}

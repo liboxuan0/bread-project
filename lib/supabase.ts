@@ -29,7 +29,7 @@ export type BreadShare = {
   pickup_address: string;
   booking_deadline: string;
   notice: string | null;
-  status: "draft" | "published" | "closed";
+  status: "draft" | "published" | "closed" | "deleted";
   created_at: string;
   updated_at: string;
 };

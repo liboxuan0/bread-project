@@ -124,24 +124,7 @@ export async function DELETE(
   try {
     const { id } = await params;
 
-    // 检查是否有关联预约记录
-    const { count, error: countError } = await supabase
-      .from("reservations")
-      .select("id", { count: "exact", head: true })
-      .eq("share_id", id);
-
-    if (countError) {
-      return NextResponse.json({ error: "查询失败" }, { status: 500 });
-    }
-
-    if (count && count > 0) {
-      return NextResponse.json(
-        { error: "该面包已有预约记录，无法删除。你可以选择下架，避免用户继续预约。" },
-        { status: 400 }
-      );
-    }
-
-    // 走 SECURITY DEFINER 函数删除（绕过 RLS）
+    // 假删除：标记 status = 'deleted'，保留预约记录
     const { error } = await supabase.rpc("admin_delete_bread_share", { p_share_id: id });
     if (error) {
       return NextResponse.json({ error: "删除失败" }, { status: 500 });

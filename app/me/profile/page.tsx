@@ -29,8 +29,6 @@ export default function ProfilePage() {
   const [nickname, setNickname] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [pickupName, setPickupName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [wechatId, setWechatId] = useState("");
   const [preferenceNote, setPreferenceNote] = useState("");
 
   // 头像选择弹窗
@@ -83,8 +81,6 @@ export default function ProfilePage() {
       setNickname(profileData.nickname || "");
       setAvatarUrl(profileData.avatar_url || DEFAULT_AVATARS[0]);
       setPickupName(profileData.pickup_name || "");
-      setPhone(profileData.phone || "");
-      setWechatId(profileData.wechat_id || "");
       setPreferenceNote(profileData.preference_note || "");
     }
 
@@ -106,8 +102,6 @@ export default function ProfilePage() {
         nickname: nickname.trim(),
         avatar_url: avatarUrl,
         pickup_name: pickupName.trim() || null,
-        phone: phone.trim() || null,
-        wechat_id: wechatId.trim() || null,
         preference_note: preferenceNote.trim() || null,
       })
       .eq("id", profile?.id);
@@ -247,29 +241,6 @@ export default function ProfilePage() {
               value={pickupName}
               onChange={(e) => setPickupName(e.target.value)}
               placeholder="预约时默认带出"
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400"
-            />
-          </div>
-
-          {/* 手机号 */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">手机号</label>
-            <input
-              type="text"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="预约时默认带出"
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400"
-            />
-          </div>
-
-          {/* 微信号 */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">微信号</label>
-            <input
-              type="text"
-              value={wechatId}
-              onChange={(e) => setWechatId(e.target.value)}
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400"
             />
           </div>
