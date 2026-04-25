@@ -96,9 +96,9 @@ export default async function BreadDetailPage({ params }: BreadDetailPageProps) 
             <div className="flex items-start gap-3 py-2 border-b border-gray-100">
               <span className="text-amber-500 text-lg">📦</span>
               <div>
-                <div className="text-sm text-gray-400">剩余份数</div>
+                <div className="text-sm text-gray-400">剩余个数</div>
                 <div className="font-medium">
-                  {bread.remaining_quantity} / {bread.total_quantity} 份
+                  {bread.remaining_quantity} / {bread.total_quantity} 个
                 </div>
               </div>
             </div>
@@ -107,7 +107,7 @@ export default async function BreadDetailPage({ params }: BreadDetailPageProps) 
               <span className="text-amber-500 text-lg">👤</span>
               <div>
                 <div className="text-sm text-gray-400">每人限约</div>
-                <div className="font-medium">{bread.limit_per_person} 份</div>
+                <div className="font-medium">{bread.limit_per_person} 个</div>
               </div>
             </div>
 

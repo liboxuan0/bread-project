@@ -70,13 +70,12 @@ export default function BreadSharesPage() {
 
   const validateBeforePublish = (bread: BreadShare): string | null => {
     if (!bread.name?.trim()) return "请填写面包名称";
-    if (!bread.total_quantity || bread.total_quantity <= 0) return "请设置总分享份数";
-    if (!bread.remaining_quantity || bread.remaining_quantity <= 0) return "剩余可预约份数必须大于 0";
-    if (!bread.limit_per_person || bread.limit_per_person <= 0) return "请设置每人最多预约份数";
+    if (!bread.total_quantity || bread.total_quantity <= 0) return "请设置总个数";
+    if (!bread.remaining_quantity || bread.remaining_quantity <= 0) return "剩余可预约个数必须大于 0";
+    if (!bread.limit_per_person || bread.limit_per_person <= 0) return "请设置每人最多预约个数";
     if (!bread.pickup_time) return "请设置领取时间";
     if (!bread.pickup_address?.trim()) return "请设置领取地点";
     if (!bread.booking_deadline) return "请设置预约截止时间";
-    if (new Date(bread.booking_deadline) <= new Date()) return "预约截止时间必须晚于当前时间";
     return null;
   };
 
@@ -232,8 +231,8 @@ export default function BreadSharesPage() {
                 <th className="px-4 py-4 text-left text-sm font-medium text-gray-600">面包名称</th>
                 <th className="px-4 py-4 text-left text-sm font-medium text-gray-600">状态</th>
                 <th className="px-4 py-4 text-left text-sm font-medium text-gray-600">上架</th>
-                <th className="px-4 py-4 text-left text-sm font-medium text-gray-600">总份数</th>
-                <th className="px-4 py-4 text-left text-sm font-medium text-gray-600">剩余份数</th>
+                <th className="px-4 py-4 text-left text-sm font-medium text-gray-600">总个数</th>
+                <th className="px-4 py-4 text-left text-sm font-medium text-gray-600">剩余个数</th>
                 <th className="px-4 py-4 text-left text-sm font-medium text-gray-600">每人限约</th>
                 <th className="px-4 py-4 text-left text-sm font-medium text-gray-600">领取时间</th>
                 <th className="px-4 py-4 text-left text-sm font-medium text-gray-600">预约截止</th>

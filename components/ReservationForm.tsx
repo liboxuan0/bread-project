@@ -89,13 +89,13 @@ export default function ReservationForm({ bread }: ReservationFormProps) {
       return "请输入联系方式";
     }
     if (quantity <= 0) {
-      return "预约份数必须大于 0";
+      return "预约个数必须大于 0";
     }
     if (quantity > bread.limit_per_person) {
-      return `每人限约 ${bread.limit_per_person} 份`;
+      return `每人限约 ${bread.limit_per_person} 个`;
     }
     if (quantity > remainingQuantity) {
-      return `剩余份数不足，当前仅剩 ${remainingQuantity} 份`;
+      return `剩余个数不足，当前仅剩 ${remainingQuantity} 个`;
     }
     return null;
   };
@@ -175,12 +175,12 @@ export default function ReservationForm({ bread }: ReservationFormProps) {
             </div>
           </div>
 
-          {/* 预约份数 */}
+          {/* 预约个数 */}
           <div className="flex items-center gap-3 pb-4 border-b border-green-100">
             <span className="text-2xl">📦</span>
             <div>
-              <div className="text-sm text-gray-500">预约份数</div>
-              <div className="text-lg font-bold text-gray-800">{bookedQuantity} 份</div>
+              <div className="text-sm text-gray-500">预约个数</div>
+              <div className="text-lg font-bold text-gray-800">{bookedQuantity} 个</div>
             </div>
           </div>
 
@@ -282,10 +282,10 @@ export default function ReservationForm({ bread }: ReservationFormProps) {
         </div>
       )}
 
-      {/* 预约份数 */}
+      {/* 预约个数 */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          预约份数 <span className="text-red-500">*</span>
+          预约个数 <span className="text-red-500">*</span>
         </label>
         <div className="flex items-center gap-3">
           <button
@@ -308,7 +308,7 @@ export default function ReservationForm({ bread }: ReservationFormProps) {
             +
           </button>
           <span className="text-sm text-gray-500 ml-2">
-            每人限约 {bread.limit_per_person} 份
+            每人限约 {bread.limit_per_person} 个
           </span>
         </div>
       </div>

@@ -62,9 +62,9 @@ export default function BreadCard({ bread }: BreadCardProps) {
             <span className="text-6xl">🥖</span>
           </div>
         )}
-        {/* 剩余份数标签 */}
+        {/* 剩余个数标签 */}
         <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium text-amber-700">
-          剩余 {bread.remaining_quantity} 份
+          剩余 {bread.remaining_quantity} 个
         </div>
       </div>
 
@@ -89,7 +89,7 @@ export default function BreadCard({ bread }: BreadCardProps) {
           </div>
           <div className="flex items-center gap-2">
             <span className="text-amber-500">👤</span>
-            <span>每人限约 {bread.limit_per_person} 份</span>
+            <span>每人限约 {bread.limit_per_person} 个</span>
           </div>
         </div>
 

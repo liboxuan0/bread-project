@@ -151,8 +151,8 @@ export default function MyReservationsPage() {
 
                 <div className="space-y-2 text-sm text-gray-600">
                   <div className="flex gap-2">
-                    <span className="text-gray-400 w-16">份数</span>
-                    <span className="text-gray-800">{reservation.quantity} 份</span>
+                    <span className="text-gray-400 w-16">个数</span>
+                    <span className="text-gray-800">{reservation.quantity} 个</span>
                   </div>
 
                   {reservation.bread_shares && (

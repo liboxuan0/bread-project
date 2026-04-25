@@ -203,7 +203,7 @@ export default function ReservationsPage() {
                   面包名称
                 </th>
                 <th className="px-4 py-4 text-left text-sm font-medium text-gray-600">
-                  份数
+                  个数
                 </th>
                 <th className="px-4 py-4 text-left text-sm font-medium text-gray-600">
                   姓名
@@ -306,8 +306,8 @@ export default function ReservationsPage() {
                 <span className="font-medium">{cancelModal.reservation.customer_name}</span>
               </div>
               <div className="flex justify-between py-2 border-b border-gray-100">
-                <span className="text-gray-500">预约份数</span>
-                <span className="font-medium">{cancelModal.reservation.quantity} 份</span>
+                <span className="text-gray-500">预约个数</span>
+                <span className="font-medium">{cancelModal.reservation.quantity} 个</span>
               </div>
             </div>
 
@@ -324,7 +324,7 @@ export default function ReservationsPage() {
                   }
                   className="w-5 h-5 rounded border-gray-300 text-amber-500 focus:ring-amber-400"
                 />
-                <span className="text-gray-700">返还名额（将份数加回剩余数量）</span>
+                <span className="text-gray-700">返还个数（将个数加回剩余个数）</span>
               </label>
             </div>
 

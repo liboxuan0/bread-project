@@ -43,11 +43,10 @@ export async function PATCH(
         const errorMap: Array<[string, string, number]> = [
           ["bread not found", "面包不存在", 404],
           ["name required", "请填写面包名称", 400],
-          ["invalid total quantity", "请设置总分享份数", 400],
-          ["no remaining quantity", "剩余可预约份数必须大于 0", 400],
-          ["invalid limit per person", "请设置每人最多预约份数", 400],
+          ["invalid total quantity", "请设置总个数", 400],
+          ["no remaining quantity", "剩余可预约个数必须大于 0", 400],
+          ["invalid limit per person", "请设置每人最多预约个数", 400],
           ["pickup address required", "请设置领取地点", 400],
-          ["booking deadline expired", "预约截止时间必须晚于当前时间", 400],
         ];
         const mapped = errorMap.find(([key]) => message.includes(key));
         if (mapped) {

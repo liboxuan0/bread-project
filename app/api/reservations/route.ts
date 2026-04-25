@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { supabase, Reservation } from "@/lib/supabase";
 import { createClient } from "@supabase/supabase-js";
 
@@ -67,10 +68,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 2. 预约份数不正确
+    // 2. 预约个数不正确
     if (quantity <= 0) {
       return NextResponse.json(
-        { error: "预约份数不正确" },
+        { error: "预约个数不正确" },
         { status: 400 }
       );
     }
@@ -94,9 +95,9 @@ export async function POST(request: NextRequest) {
         ["bread not found", "面包不存在", 404],
         ["bread not bookable", "该面包暂不可预约", 400],
         ["booking closed", "该面包已截止预约", 400],
-        ["invalid quantity", "预约份数不正确", 400],
-        ["over limit per person", "超过每人最多可预约份数", 400],
-        ["insufficient quantity", "剩余名额不足", 400],
+        ["invalid quantity", "预约个数不正确", 400],
+        ["over limit per person", "超过每人最多可预约个数", 400],
+        ["insufficient quantity", "剩余个数不足", 400],
         ["reservation exists", "你已预约过该面包", 400],
         ["duplicate key", "你已预约过该面包", 400],
       ];
@@ -110,7 +111,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 4. 返回预约成功信息
+    // 4. 刷新首页和详情页缓存
+    revalidatePath("/", "layout");
+
+    // 5. 返回预约成功信息
     return NextResponse.json({
       success: true,
       message: "预约成功",

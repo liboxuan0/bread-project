@@ -14,7 +14,6 @@ type FormData = {
   description: string;
   image_url: string;
   total_quantity: number;
-  remaining_quantity: number;
   limit_per_person: number;
   pickup_time: string;
   pickup_address: string;
@@ -27,7 +26,6 @@ const defaultForm: FormData = {
   description: "",
   image_url: "",
   total_quantity: 10,
-  remaining_quantity: 10,
   limit_per_person: 1,
   pickup_time: "",
   pickup_address: "",
@@ -78,7 +76,6 @@ export default function BreadShareForm({
         description: bread.description || "",
         image_url: bread.image_url || "",
         total_quantity: bread.total_quantity,
-        remaining_quantity: bread.remaining_quantity,
         limit_per_person: bread.limit_per_person,
         pickup_time: toLocalDateTimeValue(bread.pickup_time),
         pickup_address: bread.pickup_address,
@@ -96,23 +93,27 @@ export default function BreadShareForm({
     }
   }, [bread]);
 
-  // 监控 total_quantity 变化，检查是否小于已预约数量
+  // 监控 total_quantity 变化，检查是否小于已预约个数
   useEffect(() => {
     if (isEditing && form.total_quantity < bookedQuantity) {
       setWarning(
-        `总份数（${form.total_quantity}）小于已预约数量（${bookedQuantity}），可能导致超卖风险`
+        `总个数（${form.total_quantity}）小于已预约个数（${bookedQuantity}），可能导致超卖风险`
       );
     } else {
       setWarning("");
     }
   }, [form.total_quantity, bookedQuantity, isEditing]);
 
+  const displayedRemainingQuantity = isEditing
+    ? Math.max(0, form.total_quantity - bookedQuantity)
+    : form.total_quantity;
+
   const validate = (): string | null => {
     if (!form.name.trim()) {
       return "请输入面包名称";
     }
     if (form.total_quantity <= 0) {
-      return "总份数必须大于 0";
+      return "总个数必须大于 0";
     }
     if (form.limit_per_person <= 0) {
       return "每人限约必须大于 0";
@@ -161,7 +162,6 @@ export default function BreadShareForm({
         description: form.description.trim() || null,
         image_url: form.image_url.trim() || null,
         total_quantity: form.total_quantity,
-        remaining_quantity: form.remaining_quantity,
         limit_per_person: form.limit_per_person,
         pickup_time: new Date(form.pickup_time).toISOString(),
         pickup_address: form.pickup_address.trim(),
@@ -382,11 +382,11 @@ export default function BreadShareForm({
             />
           </div>
 
-          {/* 份数设置 */}
+          {/* 个数设置 */}
           <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                总份数 <span className="text-red-500">*</span>
+                总个数 <span className="text-red-500">*</span>
               </label>
               <input
                 type="number"
@@ -399,23 +399,20 @@ export default function BreadShareForm({
               />
               {isEditing && (
                 <p className="text-xs text-gray-500 mt-1">
-                  已预约 {bookedQuantity} 份
+                  已预约 {bookedQuantity} 个
                 </p>
               )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                剩余份数 <span className="text-red-500">*</span>
+                剩余个数
               </label>
-              <input
-                type="number"
-                min={0}
-                value={form.remaining_quantity}
-                onChange={(e) =>
-                  handleChange("remaining_quantity", parseInt(e.target.value) || 0)
-                }
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
-              />
+              <div className="w-full px-4 py-2.5 border border-gray-100 bg-gray-50 rounded-xl text-gray-700">
+                {displayedRemainingQuantity}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                {isEditing ? "系统按总个数减去已预约个数自动计算" : "新增后默认等于总个数"}
+              </p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">

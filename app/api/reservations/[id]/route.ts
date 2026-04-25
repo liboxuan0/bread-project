@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { supabase } from "@/lib/supabase";
 import { createClient } from "@supabase/supabase-js";
 
@@ -78,6 +79,8 @@ export async function DELETE(
       }
       return NextResponse.json({ error: "撤销失败" }, { status: 500 });
     }
+
+    revalidatePath("/", "layout");
 
     return NextResponse.json({ success: true, message: "撤销成功" });
   } catch (error) {

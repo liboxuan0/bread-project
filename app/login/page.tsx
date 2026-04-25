@@ -64,10 +64,7 @@ function LoginForm() {
           return;
         }
 
-        setSuccess("注册成功！请查收验证邮件后登录");
-        setIsRegister(false);
-        setPassword("");
-        setConfirmPassword("");
+        router.push(redirect);
       } else {
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email: email.trim(),
