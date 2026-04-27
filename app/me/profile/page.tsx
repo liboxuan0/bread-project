@@ -156,22 +156,28 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-50 flex items-center justify-center">
-        <div className="text-amber-600">加载中...</div>
+      <main className="min-h-screen bg-gradient-to-b from-amber-50 via-orange-50/30 to-white flex items-center justify-center">
+        <div className="flex items-center gap-3 text-amber-500">
+          <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+          加载中...
+        </div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-50">
+    <main className="min-h-screen bg-gradient-to-b from-amber-50 via-orange-50/30 to-white">
       <Header />
 
       <div className="container mx-auto px-4 py-6 max-w-2xl">
-        <h1 className="text-2xl font-bold text-amber-800 mb-6">个人信息</h1>
+        <h1 className="text-2xl font-bold text-amber-900 mb-6 animate-fade-in">个人信息</h1>
 
         {message.text && (
           <div
-            className={`mb-4 px-4 py-3 rounded-xl text-sm ${
+            className={`mb-4 px-4 py-3 rounded-xl text-sm animate-fade-in ${
               message.type === "error"
                 ? "bg-red-50 border border-red-200 text-red-700"
                 : "bg-green-50 border border-green-200 text-green-700"
@@ -182,7 +188,7 @@ export default function ProfilePage() {
         )}
 
         {/* 基础资料 */}
-        <div className="bg-white rounded-xl shadow-sm border border-amber-100 p-6 mb-6">
+        <div className="bg-white rounded-2xl shadow-sm border border-amber-100/60 p-6 mb-6 animate-slide-up">
           <h2 className="text-lg font-bold text-gray-800 mb-4">基础资料</h2>
 
           {/* 头像 */}
@@ -218,7 +224,7 @@ export default function ProfilePage() {
               type="text"
               value={nickname}
               onChange={(e) => setNickname(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400"
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 transition-shadow"
             />
           </div>
 
@@ -241,7 +247,7 @@ export default function ProfilePage() {
               value={pickupName}
               onChange={(e) => setPickupName(e.target.value)}
               placeholder="预约时默认带出"
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400"
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 transition-shadow"
             />
           </div>
 
@@ -277,14 +283,14 @@ export default function ProfilePage() {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="w-full py-3 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600 transition-colors disabled:bg-amber-300"
+            className="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold rounded-xl hover:from-amber-600 hover:to-orange-600 transition-all disabled:from-amber-300 disabled:to-orange-300 btn-press"
           >
             {saving ? "保存中..." : "保存"}
           </button>
         </div>
 
         {/* 账号安全 */}
-        <div className="bg-white rounded-xl shadow-sm border border-amber-100 p-6">
+        <div className="bg-white rounded-2xl shadow-sm border border-amber-100/60 p-6 animate-slide-up delay-75">
           <h2 className="text-lg font-bold text-gray-800 mb-4">账号安全</h2>
 
           <div className="flex items-center justify-between py-3 border-b border-gray-100">
@@ -313,8 +319,8 @@ export default function ProfilePage() {
 
       {/* 头像选择弹窗 */}
       {showAvatarPicker && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 animate-backdrop-in">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm animate-modal-in">
             <h3 className="text-lg font-bold text-gray-800 mb-4">选择头像</h3>
             <div className="grid grid-cols-5 gap-3 mb-4">
               {DEFAULT_AVATARS.map((avatar, index) => (
@@ -356,7 +362,7 @@ export default function ProfilePage() {
             <h3 className="text-lg font-bold text-gray-800 mb-4">修改密码</h3>
 
             {passwordError && (
-              <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+              <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm animate-shake">
                 {passwordError}
               </div>
             )}
@@ -368,7 +374,7 @@ export default function ProfilePage() {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="至少 6 位"
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 transition-shadow"
               />
             </div>
 
@@ -379,7 +385,7 @@ export default function ProfilePage() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="再次输入新密码"
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 transition-shadow"
               />
             </div>
 

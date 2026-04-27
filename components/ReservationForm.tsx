@@ -20,6 +20,26 @@ function formatDateTime(dateString: string): string {
   return `${month}月${day}日 ${weekday} ${hours}:${minutes}`;
 }
 
+function Confetti() {
+  const colors = ["#fbbf24", "#f59e0b", "#d97706", "#10b981", "#34d399"];
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+      {Array.from({ length: 12 }).map((_, i) => (
+        <div
+          key={i}
+          className="absolute w-2 h-2 rounded-full"
+          style={{
+            left: `${8 + Math.random() * 84}%`,
+            top: "-4px",
+            backgroundColor: colors[i % colors.length],
+            animation: `confetti-fall ${0.8 + Math.random() * 0.6}s ${Math.random() * 0.3}s ease-out forwards`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 export default function ReservationForm({ bread }: ReservationFormProps) {
   const pathname = usePathname();
   const [quantity, setQuantity] = useState(1);
@@ -55,7 +75,6 @@ export default function ReservationForm({ bread }: ReservationFormProps) {
     setIsLoggedIn(!!user);
 
     if (user) {
-      // 获取用户资料，填充默认值
       const { data: profile } = await supabase
         .from("user_profiles")
         .select("pickup_name, phone, wechat_id")
@@ -66,7 +85,6 @@ export default function ReservationForm({ bread }: ReservationFormProps) {
         if (profile.pickup_name) {
           setCustomerName(profile.pickup_name);
         }
-        // 联系方式优先使用 phone，其次 wechat_id
         if (profile.phone) {
           setContact(profile.phone);
         } else if (profile.wechat_id) {
@@ -104,7 +122,6 @@ export default function ReservationForm({ bread }: ReservationFormProps) {
     e.preventDefault();
     setError("");
 
-    // 检查登录状态
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
       setError("请先登录后再预约");
@@ -157,16 +174,17 @@ export default function ReservationForm({ bread }: ReservationFormProps) {
 
   if (success) {
     return (
-      <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-2xl overflow-hidden">
-        {/* 顶部成功标识 */}
-        <div className="bg-green-500 text-white text-center py-4">
-          <div className="text-3xl mb-1">✓</div>
-          <h3 className="text-xl font-bold">预约成功</h3>
+      <div className="relative bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 border border-green-200 rounded-2xl overflow-hidden animate-scale-in">
+        <Confetti />
+
+        {/* Success header */}
+        <div className="relative bg-gradient-to-r from-green-500 to-emerald-500 text-white text-center py-5">
+          <div className="text-4xl mb-1 animate-slide-up">✓</div>
+          <h3 className="text-xl font-bold animate-fade-in delay-150">预约成功</h3>
         </div>
 
-        {/* 预约信息卡片 */}
-        <div className="p-6 space-y-4">
-          {/* 面包名称 */}
+        {/* Details */}
+        <div className="p-6 space-y-4 animate-slide-up delay-150">
           <div className="flex items-center gap-3 pb-4 border-b border-green-100">
             <span className="text-2xl">🥖</span>
             <div>
@@ -175,7 +193,6 @@ export default function ReservationForm({ bread }: ReservationFormProps) {
             </div>
           </div>
 
-          {/* 预约个数 */}
           <div className="flex items-center gap-3 pb-4 border-b border-green-100">
             <span className="text-2xl">📦</span>
             <div>
@@ -184,7 +201,6 @@ export default function ReservationForm({ bread }: ReservationFormProps) {
             </div>
           </div>
 
-          {/* 领取时间 */}
           <div className="flex items-center gap-3 pb-4 border-b border-green-100">
             <span className="text-2xl">📅</span>
             <div>
@@ -195,7 +211,6 @@ export default function ReservationForm({ bread }: ReservationFormProps) {
             </div>
           </div>
 
-          {/* 领取地点 */}
           <div className="flex items-center gap-3 pb-4 border-b border-green-100">
             <span className="text-2xl">📍</span>
             <div>
@@ -204,8 +219,8 @@ export default function ReservationForm({ bread }: ReservationFormProps) {
             </div>
           </div>
 
-          {/* 温馨提示 */}
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+          {/* Tips */}
+          <div className="bg-amber-50/80 border border-amber-200/60 rounded-xl p-4">
             <div className="flex items-start gap-2">
               <span className="text-amber-500">💡</span>
               <div className="text-sm text-amber-800">
@@ -220,11 +235,11 @@ export default function ReservationForm({ bread }: ReservationFormProps) {
           </div>
         </div>
 
-        {/* 返回首页按钮 */}
-        <div className="px-6 pb-6 space-y-3">
+        {/* Actions */}
+        <div className="px-6 pb-6 space-y-3 animate-slide-up delay-225">
           <Link
             href="/me/reservations"
-            className="block w-full text-center py-3 bg-green-500 text-white font-bold rounded-xl hover:bg-green-600 transition-colors"
+            className="block w-full text-center py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold rounded-xl hover:from-green-600 hover:to-emerald-600 transition-all btn-press shadow-md shadow-green-500/20"
           >
             查看我的预约
           </Link>
@@ -241,8 +256,8 @@ export default function ReservationForm({ bread }: ReservationFormProps) {
 
   if (!canBook) {
     return (
-      <div className="bg-gray-50 border border-gray-200 rounded-2xl p-8 text-center">
-        <div className="text-5xl mb-4">{isSoldOut ? "😢" : "⏰"}</div>
+      <div className="bg-gray-50 border border-gray-200 rounded-2xl p-8 text-center animate-fade-in">
+        <div className="text-5xl mb-4 animate-float">{isSoldOut ? "😢" : "⏰"}</div>
         <h3 className="text-xl font-bold text-gray-600 mb-2">
           {isSoldOut ? "已约满" : "预约已截止"}
         </h3>
@@ -251,7 +266,7 @@ export default function ReservationForm({ bread }: ReservationFormProps) {
         </p>
         <a
           href="/"
-          className="inline-block mt-6 px-6 py-2 bg-gray-400 text-white rounded-xl hover:bg-gray-500 transition-colors"
+          className="inline-block mt-6 px-6 py-2 bg-gray-300 text-gray-600 rounded-xl hover:bg-gray-400 transition-colors btn-press"
         >
           返回首页
         </a>
@@ -261,15 +276,13 @@ export default function ReservationForm({ bread }: ReservationFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
-    
-
-      {/* 未登录提示 */}
+      {/* Login prompt */}
       {isLoggedIn === false && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 animate-fade-in">
           <p className="text-amber-800 text-sm mb-3">请先登录后再预约</p>
           <Link
             href={`/login?redirect=${encodeURIComponent(pathname)}`}
-            className="inline-block px-4 py-2 bg-amber-500 text-white text-sm font-medium rounded-lg hover:bg-amber-600 transition-colors"
+            className="inline-block px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-medium rounded-lg hover:from-amber-600 hover:to-orange-600 transition-all btn-press"
           >
             立即登录
           </Link>
@@ -277,12 +290,12 @@ export default function ReservationForm({ bread }: ReservationFormProps) {
       )}
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm animate-shake">
           {error}
         </div>
       )}
 
-      {/* 预约个数 */}
+      {/* Quantity selector */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           预约个数 <span className="text-red-500">*</span>
@@ -291,11 +304,11 @@ export default function ReservationForm({ bread }: ReservationFormProps) {
           <button
             type="button"
             onClick={() => setQuantity(Math.max(1, quantity - 1))}
-            className="w-10 h-10 rounded-full bg-amber-100 text-amber-700 font-bold hover:bg-amber-200 transition-colors"
+            className="w-10 h-10 rounded-full bg-amber-100 text-amber-700 font-bold hover:bg-amber-200 active:scale-90 transition-all"
           >
             -
           </button>
-          <span className="text-2xl font-bold text-gray-800 w-12 text-center">
+          <span className="text-2xl font-bold text-gray-800 w-12 text-center tabular-nums">
             {quantity}
           </span>
           <button
@@ -303,7 +316,7 @@ export default function ReservationForm({ bread }: ReservationFormProps) {
             onClick={() =>
               setQuantity(Math.min(maxQuantity, quantity + 1))
             }
-            className="w-10 h-10 rounded-full bg-amber-100 text-amber-700 font-bold hover:bg-amber-200 transition-colors"
+            className="w-10 h-10 rounded-full bg-amber-100 text-amber-700 font-bold hover:bg-amber-200 active:scale-90 transition-all"
           >
             +
           </button>
@@ -313,7 +326,7 @@ export default function ReservationForm({ bread }: ReservationFormProps) {
         </div>
       </div>
 
-      {/* 姓名 */}
+      {/* Name */}
       <div>
         <label
           htmlFor="customerName"
@@ -327,11 +340,11 @@ export default function ReservationForm({ bread }: ReservationFormProps) {
           value={customerName}
           onChange={(e) => setCustomerName(e.target.value)}
           placeholder="领取时需出示"
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent transition-shadow"
         />
       </div>
 
-      {/* 联系方式 */}
+      {/* Contact */}
       <div>
         <label
           htmlFor="contact"
@@ -345,11 +358,11 @@ export default function ReservationForm({ bread }: ReservationFormProps) {
           value={contact}
           onChange={(e) => setContact(e.target.value)}
           placeholder="手机号或微信号"
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent transition-shadow"
         />
       </div>
 
-      {/* 备注 */}
+      {/* Remark */}
       <div>
         <label
           htmlFor="remark"
@@ -363,17 +376,27 @@ export default function ReservationForm({ bread }: ReservationFormProps) {
           onChange={(e) => setRemark(e.target.value)}
           placeholder="如有特殊需求可备注"
           rows={3}
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent resize-none"
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent resize-none transition-shadow"
         />
       </div>
 
-      {/* 提交按钮 */}
+      {/* Submit */}
       <button
         type="submit"
         disabled={loading}
-        className="w-full py-4 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600 transition-colors disabled:bg-amber-300 disabled:cursor-not-allowed"
+        className="w-full py-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold rounded-xl hover:from-amber-600 hover:to-orange-600 transition-all disabled:from-amber-300 disabled:to-orange-300 disabled:cursor-not-allowed btn-press shadow-lg shadow-amber-500/20"
       >
-        {loading ? "提交中..." : "确认预约"}
+        {loading ? (
+          <span className="inline-flex items-center gap-2">
+            <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+            提交中...
+          </span>
+        ) : (
+          "确认预约"
+        )}
       </button>
     </form>
   );

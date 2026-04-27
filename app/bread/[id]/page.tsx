@@ -52,22 +52,28 @@ export default async function BreadDetailPage({ params }: BreadDetailPageProps) 
     notFound();
   }
 
+  const isLowStock = bread.remaining_quantity > 0 && bread.remaining_quantity <= 5;
+  const progressPercent = bread.total_quantity > 0
+    ? ((bread.total_quantity - bread.remaining_quantity) / bread.total_quantity) * 100
+    : 0;
+
   return (
-    <main className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-50">
+    <main className="min-h-screen bg-gradient-to-b from-amber-50 via-orange-50/30 to-white">
       <Header />
 
       <div className="container mx-auto px-4 py-6 max-w-2xl">
-        {/* 返回链接 */}
+        {/* Back link */}
         <Link
           href="/"
-          className="inline-flex items-center text-amber-700 hover:text-amber-800 transition-colors mb-4"
+          className="inline-flex items-center text-amber-700 hover:text-amber-800 transition-colors mb-4 animate-fade-in"
         >
           <span className="mr-2">←</span>
           <span>返回首页</span>
         </Link>
-        {/* 面包图片 */}
-        <div className="bg-white rounded-2xl shadow-sm border border-amber-100 overflow-hidden mb-6">
-          <div className="aspect-[16/9] bg-amber-50 relative">
+
+        {/* Hero image */}
+        <div className="bg-white rounded-2xl shadow-sm border border-amber-100/80 overflow-hidden mb-6 animate-slide-up">
+          <div className="aspect-[16/9] bg-gradient-to-br from-amber-50 to-orange-50 relative overflow-hidden">
             {bread.image_url ? (
               <img
                 src={bread.image_url}
@@ -76,43 +82,57 @@ export default async function BreadDetailPage({ params }: BreadDetailPageProps) 
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
-                <span className="text-8xl">🥖</span>
+                <span className="text-8xl animate-float">🥖</span>
               </div>
             )}
           </div>
         </div>
 
-        {/* 面包信息 */}
-        <div className="bg-white rounded-2xl shadow-sm border border-amber-100 p-6 mb-6">
+        {/* Info card */}
+        <div className="bg-white rounded-2xl shadow-sm border border-amber-100/80 p-6 mb-6 animate-slide-up delay-75">
           <h1 className="text-2xl font-bold text-gray-800 mb-3">{bread.name}</h1>
 
           {bread.description && (
-            <p className="text-gray-600 mb-6 leading-relaxed">
+            <p className="text-gray-500 mb-6 leading-relaxed">
               {bread.description}
             </p>
           )}
 
           <div className="space-y-3 text-gray-600">
-            <div className="flex items-start gap-3 py-2 border-b border-gray-100">
-              <span className="text-amber-500 text-lg">📦</span>
-              <div>
-                <div className="text-sm text-gray-400">剩余个数</div>
-                <div className="font-medium">
-                  {bread.remaining_quantity} / {bread.total_quantity} 个
+            {/* Remaining quantity with progress bar */}
+            <div className="flex items-start gap-3 py-2 border-b border-gray-50">
+              <span className="text-amber-400 text-lg">📦</span>
+              <div className="flex-1">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm text-gray-400">剩余个数</span>
+                  <span className={`font-medium text-sm ${isLowStock ? "text-red-500" : ""}`}>
+                    {bread.remaining_quantity} / {bread.total_quantity} 个
+                  </span>
+                </div>
+                <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-700 ease-out"
+                    style={{
+                      width: `${progressPercent}%`,
+                      background: progressPercent > 80
+                        ? "linear-gradient(90deg, #f59e0b, #ef4444)"
+                        : "linear-gradient(90deg, #fbbf24, #f59e0b)",
+                    }}
+                  />
                 </div>
               </div>
             </div>
 
-            <div className="flex items-start gap-3 py-2 border-b border-gray-100">
-              <span className="text-amber-500 text-lg">👤</span>
+            <div className="flex items-start gap-3 py-2 border-b border-gray-50">
+              <span className="text-amber-400 text-lg">👤</span>
               <div>
                 <div className="text-sm text-gray-400">每人限约</div>
                 <div className="font-medium">{bread.limit_per_person} 个</div>
               </div>
             </div>
 
-            <div className="flex items-start gap-3 py-2 border-b border-gray-100">
-              <span className="text-amber-500 text-lg">📅</span>
+            <div className="flex items-start gap-3 py-2 border-b border-gray-50">
+              <span className="text-amber-400 text-lg">📅</span>
               <div>
                 <div className="text-sm text-gray-400">领取时间</div>
                 <div className="font-medium">
@@ -121,16 +141,16 @@ export default async function BreadDetailPage({ params }: BreadDetailPageProps) 
               </div>
             </div>
 
-            <div className="flex items-start gap-3 py-2 border-b border-gray-100">
-              <span className="text-amber-500 text-lg">📍</span>
+            <div className="flex items-start gap-3 py-2 border-b border-gray-50">
+              <span className="text-amber-400 text-lg">📍</span>
               <div>
                 <div className="text-sm text-gray-400">领取地点</div>
                 <div className="font-medium">{bread.pickup_address}</div>
               </div>
             </div>
 
-            <div className="flex items-start gap-3 py-2 border-b border-gray-100">
-              <span className="text-amber-500 text-lg">⏰</span>
+            <div className="flex items-start gap-3 py-2 border-b border-gray-50">
+              <span className="text-amber-400 text-lg">⏰</span>
               <div>
                 <div className="text-sm text-gray-400">预约截止</div>
                 <div className="font-medium">
@@ -141,7 +161,7 @@ export default async function BreadDetailPage({ params }: BreadDetailPageProps) 
 
             {bread.notice && (
               <div className="flex items-start gap-3 py-2">
-                <span className="text-amber-500 text-lg">📝</span>
+                <span className="text-amber-400 text-lg">📝</span>
                 <div>
                   <div className="text-sm text-gray-400">领取说明</div>
                   <div className="font-medium whitespace-pre-line">
@@ -153,8 +173,8 @@ export default async function BreadDetailPage({ params }: BreadDetailPageProps) 
           </div>
         </div>
 
-        {/* 预约表单 */}
-        <div className="bg-white rounded-2xl shadow-sm border border-amber-100 p-6">
+        {/* Reservation form */}
+        <div className="bg-white rounded-2xl shadow-sm border border-amber-100/80 p-6 animate-slide-up delay-150">
           <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
             <span>✍️</span>
             <span>免费预约</span>
@@ -163,9 +183,9 @@ export default async function BreadDetailPage({ params }: BreadDetailPageProps) 
         </div>
       </div>
 
-      {/* 底部 */}
-      <footer className="text-center py-8 text-amber-700/60 text-sm">
-        <p>用心烘焙，与你分享 💛</p>
+      {/* Footer */}
+      <footer className="text-center py-8 text-amber-600/40 text-sm">
+        用心烘焙，与你分享
       </footer>
     </main>
   );

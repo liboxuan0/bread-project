@@ -1,3 +1,148 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ── Animation system ─────────────────────────────── */
+
+@layer base {
+  :root {
+    --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+
+/* ── Keyframes ────────────────────────────────────── */
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-up-lg {
+  from { opacity: 0; transform: translateY(32px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.6; }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes confetti-fall {
+  0%   { transform: translateY(-10px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(60px) rotate(360deg); opacity: 0; }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%      { transform: translateX(-4px); }
+  40%      { transform: translateX(4px); }
+  60%      { transform: translateX(-3px); }
+  80%      { transform: translateX(3px); }
+}
+
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes badge-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.3); }
+  50%      { box-shadow: 0 0 0 6px rgba(217, 119, 6, 0); }
+}
+
+@keyframes modal-in {
+  from { opacity: 0; transform: scale(0.95) translateY(12px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes backdrop-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Utility classes ──────────────────────────────── */
+
+@layer utilities {
+  .animate-fade-in   { animation: fade-in   0.4s var(--ease-out-quart) both; }
+  .animate-slide-up  { animation: slide-up  0.45s var(--ease-out-expo) both; }
+  .animate-slide-up-lg { animation: slide-up-lg 0.6s var(--ease-out-expo) both; }
+  .animate-scale-in  { animation: scale-in  0.35s var(--ease-out-expo) both; }
+  .animate-float     { animation: float     3s ease-in-out infinite; }
+  .animate-pulse-soft { animation: pulse-soft 2s ease-in-out infinite; }
+  .animate-shake     { animation: shake     0.4s ease-in-out; }
+  .animate-badge-pulse { animation: badge-pulse 2s ease-in-out infinite; }
+  .animate-modal-in  { animation: modal-in  0.3s var(--ease-out-expo) both; }
+  .animate-backdrop-in { animation: backdrop-in 0.2s ease-out both; }
+
+  /* Stagger delays */
+  .delay-75  { animation-delay: 75ms; }
+  .delay-150 { animation-delay: 150ms; }
+  .delay-225 { animation-delay: 225ms; }
+  .delay-300 { animation-delay: 300ms; }
+  .delay-375 { animation-delay: 375ms; }
+  .delay-450 { animation-delay: 450ms; }
+
+  /* Skeleton shimmer */
+  .skeleton {
+    background: linear-gradient(90deg, #f5f0eb 25%, #ede5db 50%, #f5f0eb 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+
+  /* Button press */
+  .btn-press {
+    transition: transform 0.15s var(--ease-out-quart), box-shadow 0.2s var(--ease-out-quart);
+  }
+  .btn-press:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+
+  /* Card hover lift */
+  .card-lift {
+    transition: transform 0.3s var(--ease-out-quart),
+                box-shadow 0.3s var(--ease-out-quart);
+  }
+  .card-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px -8px rgba(180, 120, 40, 0.18);
+  }
+
+  /* Image zoom on hover */
+  .img-zoom {
+    transition: transform 0.5s var(--ease-out-quart);
+  }
+  .card-lift:hover .img-zoom {
+    transform: scale(1.06);
+  }
+}
+
+/* ── Accessibility ────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

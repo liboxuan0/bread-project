@@ -213,7 +213,7 @@ export default function BreadSharesPage() {
 
       {/* Toast */}
       {toast && (
-        <div className={`mb-4 px-4 py-3 rounded-xl text-sm ${
+        <div className={`mb-4 px-4 py-3 rounded-xl text-sm animate-slide-up ${
           toast.type === "success"
             ? "bg-green-50 border border-green-200 text-green-700"
             : "bg-red-50 border border-red-200 text-red-700"
@@ -347,8 +347,8 @@ export default function BreadSharesPage() {
 
       {/* 下架确认弹窗 */}
       {unpublishTarget && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md p-6">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 animate-backdrop-in">
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 animate-modal-in">
             <h2 className="text-lg font-bold text-gray-800 mb-3">确认下架该面包？</h2>
             <p className="text-gray-600 text-sm leading-relaxed mb-6">
               下架后，该面包将不再展示在用户端，用户无法继续预约。已产生的预约记录不会被删除，仍可在预约管理中查看和处理。

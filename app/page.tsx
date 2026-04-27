@@ -24,41 +24,43 @@ export default async function Home() {
   const breads = await getPublishedBreads();
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-50">
+    <main className="min-h-screen bg-gradient-to-b from-amber-50 via-orange-50/30 to-white">
       <Header />
-      {/* 顶部装饰 */}
-      <div className="bg-amber-100/50 border-b border-amber-200">
-        <div className="container mx-auto px-4 py-12 text-center">
-          <div className="text-5xl mb-4">🍞</div>
-          <h1 className="text-3xl md:text-4xl font-bold text-amber-800 mb-3">
+
+      {/* Hero section */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-amber-100 via-amber-50 to-orange-100 border-b border-amber-200/50">
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "radial-gradient(circle, #92400e 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
+        <div className="container mx-auto px-4 py-14 text-center relative">
+          <div className="text-5xl mb-4 animate-float">🍞</div>
+          <h1 className="text-3xl md:text-4xl font-bold text-amber-900 mb-3 tracking-tight">
             免费面包分享预约
           </h1>
-          <p className="text-amber-700/80 text-lg">
+          <p className="text-amber-700/70 text-lg font-light">
             手作面包，温暖分享
           </p>
         </div>
       </div>
 
-      {/* 面包列表 */}
+      {/* Bread list */}
       <div className="container mx-auto px-4 py-8">
         {breads.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {breads.map((bread) => (
-              <BreadCard key={bread.id} bread={bread} />
+            {breads.map((bread, i) => (
+              <BreadCard key={bread.id} bread={bread} index={i} />
             ))}
           </div>
         ) : (
-          <div className="text-center py-16">
-            <div className="text-6xl mb-4">🥐</div>
-            <p className="text-gray-500 text-lg">暂无可预约的面包</p>
-            <p className="text-gray-400 text-sm mt-2">请稍后再来看看～</p>
+          <div className="text-center py-20">
+            <div className="text-7xl mb-6 animate-float">🥐</div>
+            <p className="text-gray-400 text-lg mb-2">暂无可预约的面包</p>
+            <p className="text-gray-300 text-sm">请稍后再来看看～</p>
           </div>
         )}
       </div>
 
-      {/* 底部 */}
-      <footer className="text-center py-8 text-amber-700/60 text-sm">
-        <p>用心烘焙，与你分享 💛</p>
+      {/* Footer */}
+      <footer className="text-center py-8 text-amber-600/40 text-sm">
+        用心烘焙，与你分享
       </footer>
     </main>
   );

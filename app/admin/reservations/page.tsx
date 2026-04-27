@@ -292,8 +292,8 @@ export default function ReservationsPage() {
 
       {/* 取消预约弹窗 */}
       {cancelModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md p-6">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 animate-backdrop-in">
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 animate-modal-in">
             <h2 className="text-lg font-bold text-gray-800 mb-4">取消预约</h2>
 
             <div className="space-y-3 mb-6">

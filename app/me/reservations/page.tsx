@@ -20,12 +20,12 @@ type ReservationWithBread = {
   } | null;
 };
 
-const statusMap: Record<string, { label: string; color: string }> = {
-  pending: { label: "待确认", color: "bg-yellow-100 text-yellow-700" },
-  confirmed: { label: "已确认", color: "bg-blue-100 text-blue-700" },
-  picked_up: { label: "已领取", color: "bg-green-100 text-green-700" },
-  cancelled: { label: "已取消", color: "bg-gray-100 text-gray-500" },
-  no_show: { label: "未领取", color: "bg-red-100 text-red-700" },
+const statusMap: Record<string, { label: string; color: string; bg: string }> = {
+  pending:    { label: "待确认", color: "text-amber-700", bg: "bg-amber-100" },
+  confirmed:  { label: "已确认", color: "text-sky-700",   bg: "bg-sky-100" },
+  picked_up:  { label: "已领取", color: "text-emerald-700", bg: "bg-emerald-100" },
+  cancelled:  { label: "已取消", color: "text-gray-500",  bg: "bg-gray-100" },
+  no_show:    { label: "未领取", color: "text-red-600",   bg: "bg-red-100" },
 };
 
 function formatDateTime(dateString: string): string {
@@ -117,115 +117,125 @@ export default function MyReservationsPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-50 flex items-center justify-center">
-        <div className="text-amber-600">加载中...</div>
+      <main className="min-h-screen bg-gradient-to-b from-amber-50 via-orange-50/30 to-white flex items-center justify-center">
+        <div className="flex items-center gap-3 text-amber-500">
+          <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+          加载中...
+        </div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-50">
+    <main className="min-h-screen bg-gradient-to-b from-amber-50 via-orange-50/30 to-white">
       <Header />
 
-      <div className="container mx-auto px-4 py-6">
-        <h1 className="text-2xl font-bold text-amber-800 mb-6">我的预约</h1>
+      <div className="container mx-auto px-4 py-6 max-w-2xl">
+        <h1 className="text-2xl font-bold text-amber-900 mb-6 animate-fade-in">我的预约</h1>
         {reservations.length > 0 ? (
           <div className="space-y-4">
-            {reservations.map((reservation) => (
-              <div
-                key={reservation.id}
-                className="bg-white rounded-xl shadow-sm border border-amber-100 p-5"
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <span className="font-bold text-gray-800 text-lg">
-                    {reservation.bread_name}
-                  </span>
-                  <span
-                    className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      statusMap[reservation.status]?.color || "bg-gray-100"
-                    }`}
-                  >
-                    {statusMap[reservation.status]?.label || reservation.status}
-                  </span>
-                </div>
-
-                <div className="space-y-2 text-sm text-gray-600">
-                  <div className="flex gap-2">
-                    <span className="text-gray-400 w-16">个数</span>
-                    <span className="text-gray-800">{reservation.quantity} 个</span>
-                  </div>
-
-                  {reservation.bread_shares && (
-                    <>
-                      <div className="flex gap-2">
-                        <span className="text-gray-400 w-16">领取时间</span>
-                        <span className="text-gray-800">
-                          {formatDateTime(reservation.bread_shares.pickup_time)}
-                        </span>
-                      </div>
-                      <div className="flex gap-2">
-                        <span className="text-gray-400 w-16">领取地点</span>
-                        <span className="text-gray-800">
-                          {reservation.bread_shares.pickup_address}
-                        </span>
-                      </div>
-                    </>
-                  )}
-
-                  <div className="flex gap-2">
-                    <span className="text-gray-400 w-16">预约时间</span>
-                    <span className="text-gray-500">
-                      {formatDateTime(reservation.created_at)}
+            {reservations.map((reservation, i) => {
+              const s = statusMap[reservation.status] || statusMap.cancelled;
+              const delays = ["", "delay-75", "delay-150", "delay-225", "delay-300"];
+              return (
+                <div
+                  key={reservation.id}
+                  className={`animate-slide-up ${delays[i % delays.length]} bg-white rounded-2xl shadow-sm border border-amber-100/60 p-5 transition-shadow hover:shadow-md`}
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <span className="font-bold text-gray-800 text-lg">
+                      {reservation.bread_name}
+                    </span>
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-semibold ${s.bg} ${s.color}`}
+                    >
+                      {s.label}
                     </span>
                   </div>
 
-                  {reservation.remark && (
+                  <div className="space-y-2 text-sm text-gray-600">
                     <div className="flex gap-2">
-                      <span className="text-gray-400 w-16">备注</span>
-                      <span className="text-gray-600">{reservation.remark}</span>
+                      <span className="text-gray-400 w-16">个数</span>
+                      <span className="text-gray-800">{reservation.quantity} 个</span>
+                    </div>
+
+                    {reservation.bread_shares && (
+                      <>
+                        <div className="flex gap-2">
+                          <span className="text-gray-400 w-16">领取时间</span>
+                          <span className="text-gray-800">
+                            {formatDateTime(reservation.bread_shares.pickup_time)}
+                          </span>
+                        </div>
+                        <div className="flex gap-2">
+                          <span className="text-gray-400 w-16">领取地点</span>
+                          <span className="text-gray-800">
+                            {reservation.bread_shares.pickup_address}
+                          </span>
+                        </div>
+                      </>
+                    )}
+
+                    <div className="flex gap-2">
+                      <span className="text-gray-400 w-16">预约时间</span>
+                      <span className="text-gray-500">
+                        {formatDateTime(reservation.created_at)}
+                      </span>
+                    </div>
+
+                    {reservation.remark && (
+                      <div className="flex gap-2">
+                        <span className="text-gray-400 w-16">备注</span>
+                        <span className="text-gray-600">{reservation.remark}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Cancel button */}
+                  {canCancel(reservation) && (
+                    <div className="mt-4 pt-4 border-t border-gray-50">
+                      {confirmId === reservation.id ? (
+                        <div className="flex items-center gap-3 animate-fade-in">
+                          <span className="text-sm text-gray-600">确定撤销？</span>
+                          <button
+                            onClick={() => handleCancel(reservation.id)}
+                            disabled={cancellingId === reservation.id}
+                            className="px-3 py-1 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:bg-red-300 btn-press"
+                          >
+                            {cancellingId === reservation.id ? "撤销中..." : "确定"}
+                          </button>
+                          <button
+                            onClick={() => setConfirmId(null)}
+                            className="px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors"
+                          >
+                            取消
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setConfirmId(reservation.id)}
+                          className="text-sm text-red-400 hover:text-red-600 transition-colors"
+                        >
+                          撤销预约
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
-
-                {/* 撤销按钮 */}
-                {canCancel(reservation) && (
-                  <div className="mt-4 pt-4 border-t border-gray-100">
-                    {confirmId === reservation.id ? (
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm text-gray-600">确定撤销？</span>
-                        <button
-                          onClick={() => handleCancel(reservation.id)}
-                          disabled={cancellingId === reservation.id}
-                          className="px-3 py-1 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:bg-red-300"
-                        >
-                          {cancellingId === reservation.id ? "撤销中..." : "确定"}
-                        </button>
-                        <button
-                          onClick={() => setConfirmId(null)}
-                          className="px-3 py-1 text-sm bg-gray-200 text-gray-600 rounded-lg hover:bg-gray-300"
-                        >
-                          取消
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => setConfirmId(reservation.id)}
-                        className="text-sm text-red-500 hover:text-red-600"
-                      >
-                        撤销预约
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
-          <div className="text-center py-16">
-            <p className="text-gray-500 text-lg">暂无预约记录</p>
+          <div className="text-center py-20 animate-fade-in">
+            <div className="text-7xl mb-6 animate-float">🥖</div>
+            <p className="text-gray-400 text-lg mb-2">暂无预约记录</p>
+            <p className="text-gray-300 text-sm mb-6">快去看看有什么新鲜面包吧</p>
             <Link
               href="/"
-              className="inline-block mt-6 px-6 py-2 bg-amber-500 text-white rounded-xl hover:bg-amber-600 transition-colors"
+              className="inline-block px-6 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl hover:from-amber-600 hover:to-orange-600 transition-all btn-press shadow-md shadow-amber-500/20"
             >
               去预约面包
             </Link>
