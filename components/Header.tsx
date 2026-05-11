@@ -39,63 +39,90 @@ export default function Header() {
     match === "/" ? pathname === "/" : pathname.startsWith(match);
 
   return (
-    <header className="bg-white/80 backdrop-blur-md border-b border-amber-100/60 sticky top-0 z-50 transition-shadow">
-      <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-        <Link
-          href="/"
-          className="flex items-center gap-2 text-amber-700 font-bold group"
-        >
-          <span className="text-xl transition-transform duration-300 group-hover:rotate-12">🍞</span>
-          <span className="transition-colors group-hover:text-amber-800">面包分享</span>
-        </Link>
+    <>
+      {/* Top banner */}
+      <div
+        className="relative z-40 w-full leading-[0]"
+        style={{ marginTop: "clamp(-28px, -1.25vw, -12px)" }}
+      >
+        <img
+          src="/dingbu.png"
+          alt=""
+          className="w-full h-auto block"
+        />
+      </div>
 
-        <nav className="flex items-center gap-1 text-sm">
-          {loading ? (
-            <span className="text-gray-300 px-3">...</span>
-          ) : user ? (
-            <>
-              {navItems.map((item) => (
+      {/* Nav bar */}
+      <header className="sticky top-0 z-50 bg-transparent">
+        <div
+          className="container mx-auto px-4 py-0 grid grid-cols-3 items-center"
+          style={{
+            fontFamily: "'Baloo 2', sans-serif",
+            fontSize: "clamp(16px, 1.05vw, 20px)",
+            lineHeight: 1.5,
+          }}
+        >
+          {/* Left spacer */}
+          <div />
+
+          {/* Center nav */}
+          <nav className="flex items-center justify-center gap-1 flex-nowrap">
+            {loading ? (
+              <span className="text-gray-300 px-3">...</span>
+            ) : user ? (
+              navItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`relative px-3 py-1.5 rounded-lg transition-colors ${
+                  className={`relative px-2 py-1.5 rounded-lg transition-colors whitespace-nowrap ${
                     isActive(item.match)
-                      ? "text-amber-600 font-medium bg-amber-50"
-                      : "text-gray-500 hover:text-amber-600 hover:bg-amber-50/50"
+                      ? "font-medium text-[#74320F]"
+                      : "text-[#6B3A1A] hover:text-[#8B4218] "
                   }`}
                 >
                   {item.label}
+                  {isActive(item.match) && (
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-1 rounded-full" style={{ backgroundColor: '#F37C72' }} />
+                  )}
                 </Link>
-              ))}
-              <button
-                onClick={handleLogout}
-                className="ml-2 text-gray-400 hover:text-gray-600 transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-50"
-              >
-                Logout
-              </button>
-            </>
-          ) : (
-            <>
+              ))
+            ) : (
               <Link
                 href="/"
-                className={`px-3 py-1.5 rounded-lg transition-colors ${
+                className={`relative px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap ${
                   pathname === "/"
-                    ? "text-amber-600 font-medium bg-amber-50"
-                    : "text-gray-500 hover:text-amber-600 hover:bg-amber-50/50"
+                    ? "font-medium text-[#74320F]"
+                    : "text-[#6B3A1A] hover:text-[#8B4218] "
                 }`}
               >
                 Home
+                {pathname === "/" && (
+                  <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-1 rounded-full" style={{ backgroundColor: '#F37C72' }} />
+                )}
               </Link>
+            )}
+          </nav>
+
+          {/* Right action */}
+          <div className="flex items-center justify-end">
+            {!loading && (user ? (
+              <button
+                onClick={handleLogout}
+                className="text-gray-400 hover:text-gray-600 transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-50"
+              >
+                Logout
+              </button>
+            ) : (
               <Link
                 href={`/login?redirect=${encodeURIComponent(pathname)}`}
-                className="ml-2 px-4 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg hover:from-amber-600 hover:to-orange-600 transition-all btn-press shadow-sm shadow-amber-500/20"
+                className="px-4 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg hover:from-amber-600 hover:to-orange-600 transition-all btn-press shadow-sm shadow-amber-500/20"
               >
                 Sign In
               </Link>
-            </>
-          )}
-        </nav>
-      </div>
-    </header>
+            ))}
+          </div>
+        </div>
+      </header>
+    </>
   );
 }

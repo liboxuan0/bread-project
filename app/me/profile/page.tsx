@@ -156,7 +156,7 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-gradient-to-b from-amber-50 via-orange-50/30 to-white flex items-center justify-center">
+      <main className="min-h-screen flex items-center justify-center">
         <div className="flex items-center gap-3 text-amber-500">
           <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -169,7 +169,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-amber-50 via-orange-50/30 to-white">
+    <main className="min-h-screen">
       <Header />
 
       <div className="container mx-auto px-4 py-6 max-w-2xl">

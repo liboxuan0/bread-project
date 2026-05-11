@@ -58,7 +58,7 @@ export default async function BreadDetailPage({ params }: BreadDetailPageProps) 
     : 0;
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-amber-50 via-orange-50/30 to-white">
+    <main className="min-h-screen">
       <Header />
 
       <div className="container mx-auto px-4 py-6 max-w-2xl">

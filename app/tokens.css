@@ -1,0 +1,94 @@
+/**
+ * Design Tokens — 面包分享
+ *
+ * 单一真实来源。所有组件的颜色应引用此文件中的 CSS 自定义属性。
+ *
+ * 使用方式：
+ *   color: var(--color-primary);
+ *   background: var(--color-bg-page);
+ */
+
+:root {
+  /* ── Background ── */
+  --color-bg-page:   #FDF3E5;   /* 整页背景 */
+  --color-bg-warm:   #FAD8AF;   /* 暖色块 */
+  --color-bg-cream:  #FFF7ED;   /* 奶油色块 */
+  --color-bg-card:   #FFEFDC;   /* 卡片背景 */
+  --color-bg-soft:   #FFE4C2;   /* 柔和块 */
+  --color-bg-panel:  #FFFCF7;   /* 预约信息等浅色面板 */
+
+  /* ── Brand / Primary ── */
+  --color-primary:        #8B4218;   /* 主文字、品牌色、重要标题 */
+  --color-primary-hover:  #A95723;   /* hover */
+  --color-primary-active: #6F2F10;   /* active / pressed */
+  --color-primary-light:  #F8D7A8;   /* 浅背景 */
+  --color-primary-soft:   #FDE7CA;   /* 标签、浅按钮背景 */
+
+  /* ── Accent ── */
+  --color-accent-coral:        #F37C72;   /* 主行动按钮、预约按钮 */
+  --color-accent-coral-hover:  #FF9186;   /* 主行动按钮 hover */
+  --color-accent-coral-active: #D95F55;   /* 主行动按钮 active */
+  --color-accent-pink:         #F7A7A0;   /* 胶囊装饰、粉色按钮 */
+  --color-accent-honey:        #FFB55C;   /* 图标、高亮、徽章 */
+  --color-accent-yellow:       #FFD88A;   /* 标签、装饰、光效 */
+
+  /* ── Text ── */
+  --color-text-title:      #74320F;   /* 一级标题 */
+  --color-text-primary:    #6B3A1A;   /* 正文主文字 */
+  --color-text-secondary:  #9A6840;   /* 次级说明 */
+  --color-text-tertiary:   #CC966A;   /* 弱提示 */
+  --color-text-inverse:    #FFFFFF;   /* 深色按钮文字 */
+  --color-text-danger:     #FA5342;   /* 强调数字、异常 */
+  --color-text-emphasis:   #E84D3D;   /* 预约数量、时间等强调内容 */
+
+  /* ── Border ── */
+  --color-border-light:   #F3D7AF;   /* 卡片浅边框 */
+  --color-border-normal:  #F0CA9D;   /* 常规描边 */
+  --color-border-dark:    #C29061;   /* 强调描边 */
+  --color-border-dashed:  #B98458;   /* 虚线分割 */
+
+  /* ═══ 主按钮 (深棕，三段渐变 + 描边) ═══ */
+  --btn-primary-bg:           linear-gradient(
+                                180deg,
+                                var(--color-primary-hover) 0%,
+                                var(--color-primary) 52%,
+                                var(--color-primary-active) 100%
+                              );
+  --btn-primary-bg-hover:     linear-gradient(
+                                180deg,
+                                #B86530 0%,
+                                var(--color-primary-hover) 52%,
+                                var(--color-primary) 100%
+                              );
+  --btn-primary-bg-active:    var(--color-primary-active);
+  --btn-primary-text:         #FFF7ED;
+
+  --btn-primary-border-width: 2px;
+  --btn-primary-border-color: var(--color-primary-active);
+
+  --btn-primary-font-family:  'Baloo 2', 'ZCOOL KuaiLe', sans-serif;
+  --btn-primary-font-size:    22px;
+  --btn-primary-font-weight:  600;
+  --btn-primary-line-height:  30px;
+
+  --btn-primary-padding-y:    16px;
+  --btn-primary-padding-x:    32px;
+  --btn-primary-radius:       9999px;
+
+  /* 内嵌虚线描边 */
+  --btn-primary-inset-color:  var(--color-bg-warm);
+  --btn-primary-inset-width:  1px;
+  --btn-primary-inset-offset: 5px;
+  --btn-primary-inset-style:  dashed;
+
+  /* 阴影 */
+  --shadow-btn-brown:        0 4px 0px rgba(111, 47, 16, 0.25);
+  --shadow-btn-brown-hover:  0 4px 0px rgba(111, 47, 16, 0.25);
+  --shadow-btn-pressed:      0 4px 0px rgba(111, 47, 16, 0.16);
+  --shadow-btn-disabled:     0 4px 0px rgba(111, 47, 16, 0.10);
+
+  --btn-primary-shadow:        var(--shadow-btn-brown);
+  --btn-primary-shadow-active: var(--shadow-btn-pressed);
+
+  --btn-primary-disabled-opacity: 0.5;
+}
