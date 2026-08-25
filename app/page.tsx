@@ -186,6 +186,8 @@ export default async function Home() {
         </div>
       </div>
 
+      {featuredBread && (
+      <>
       {/* 下一模块标题 */}
       <div className="flex justify-center pt-2 pb-2">
         <img
@@ -199,6 +201,7 @@ export default async function Home() {
           }}
         />
       </div>
+
 
       <div className="featured-bread-section">
         <div className="featured-bread-frame">
@@ -281,6 +284,8 @@ export default async function Home() {
           </div>
         </div>
       </div>
+      </>
+      )}
 
       {/* Bread list */}
       <div id="bread-list" className="container mx-auto px-4 py-8">
@@ -296,9 +301,7 @@ export default async function Home() {
           </div>
         ) : (
           <div className="text-center py-20">
-            <div className="text-7xl mb-6 animate-float">🥐</div>
-            <p className="text-gray-400 text-lg mb-2">暂无可预约的面包</p>
-            <p className="text-gray-300 text-sm">请稍后再来看看～</p>
+            <p className="text-[12px] font-normal mb-2" style={{ color: 'var(--color-text-tertiary)' }}>暂无可预约的面包 请稍后再来看看～</p>
           </div>
         )}
       </div>
